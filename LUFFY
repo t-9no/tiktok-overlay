@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUFFY - تراكب شريط البث المباشر IQD</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* وضع التراكب الشفاف لـ TikTok LIVE Studio */
+        body.overlay-mode {
+            background-color: transparent !important;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: #0b0b0d;
+            color: #ffffff;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #141418;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid #282832;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: #facc15;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: normal;
+            background: #222;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .card {
+            background-color: #141418;
+            border: 1px solid #282832;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #facc15;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* شريط المعاينة والـ Overlay */
+        .marquee-box {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #333;
+            border-radius: 8px;
+            height: 60px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        body.overlay-mode .marquee-box {
+            background: transparent;
+            border: none;
+            height: 100vh;
+        }
+
+        .marquee-track {
+            display: flex;
+            white-space: nowrap;
+            position: absolute;
+            will-change: transform;
+            animation: marquee 12s linear infinite;
+        }
+
+        .marquee-item {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+        }
+
+        .marquee-item .amount {
+            color: #facc15;
+            margin-right: 8px;
+        }
+
+        .marquee-item .sep {
+            margin: 0 25px;
+            color: #facc15;
+            font-size: 18px;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(50%); }
+        }
+
+        /* جدول الخانات الـ 10 */
+        .slots-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slot-row {
+            display: grid;
+            grid-template-columns: 45px 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+            background: #0d0d10;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #202028;
+        }
+
+        .slot-num {
+            color: #666;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        input[type="text"], input[type="number"] {
+            background-color: #16161c;
+            border: 1px solid #2a2a36;
+            border-radius: 6px;
+            padding: 9px 12px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: #facc15;
+        }
+
+        .currency-label {
+            position: relative;
+        }
+
+        .currency-label::after {
+            content: "د.ع";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .currency-label input {
+            padding-left: 45px;
+        }
+
+        .btn-yellow {
+            background-color: #facc15;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-yellow:hover {
+            background-color: #eab308;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="dashContainer">
+    <div class="header">
+        <div class="logo">LUFFY <span>شريط البث المباشر</span></div>
+        <button class="btn-yellow" onclick="saveData()">💾 حفظ التغييرات</button>
+    </div>
+
+    <div class="card">
+        <div class="title">👁️ معاينة حية للشريط المتحرك</div>
+        <div class="marquee-box">
+            <div class="marquee-track" id="marqueeTrack"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="title">📝 10 خانات للأسماء والمبالغ بالدينار العراقي (IQD)</div>
+        <div class="slots-grid" id="slotsContainer"></div>
+    </div>
+</div>
+
+<script>
+    // التأكد من وضع التراكب
+    const urlParams = new URLSearchParams(window.location.search);
+    const isOverlay = urlParams.get('mode') === 'overlay';
+
+    if (isOverlay) {
+        document.body.classList.add('overlay-mode');
+        document.getElementById('dashContainer').style.display = 'none';
+        
+        const overlayBox = document.createElement('div');
+        overlayBox.className = 'marquee-box';
+        
+        const track = document.createElement('div');
+        track.className = 'marquee-track';
+        track.id = 'marqueeTrackOverlay';
+        overlayBox.appendChild(track);
+        document.body.appendChild(overlayBox);
+
+        loadOverlayData();
+    } else {
+        initDashboard();
+    }
+
+    function initDashboard() {
+        const container = document.getElementById('slotsContainer');
+        const savedData = JSON.parse(localStorage.getItem('luffy_data')) || [
+            { name: "علي الكرخي", amount: "50000" },
+            { name: "حسين العراقي", amount: "25000" },
+            { name: "محمد البصراوي", amount: "10000" }
+        ];
+
+        for (let i = 0; i < 10; i++) {
+            const nameVal = savedData[i] ? savedData[i].name : '';
+            const amountVal = savedData[i] ? savedData[i].amount : '';
+
+            const row = document.createElement('div');
+            row.className = 'slot-row';
+            row.innerHTML = `
+                <div class="slot-num">#${i + 1}</div>
+                <input type="text" placeholder="اسم الشخص" class="slot-name" value="${nameVal}" oninput="updateMarquee()">
+                <div class="currency-label">
+                    <input type="number" placeholder="المبلغ" class="slot-amount" value="${amountVal}" oninput="updateMarquee()">
+                </div>
+            `;
+            container.appendChild(row);
+        }
+        updateMarquee();
+    }
+
+    function updateMarquee() {
+        const names = Array.from(document.querySelectorAll('.slot-name')).map(input => input.value.trim());
+        const amounts = Array.from(document.querySelectorAll('.slot-amount')).map(input => input.value.trim());
+
+        renderTrack(names, amounts, 'marqueeTrack');
+    }
+
+    function renderTrack(names, amounts, targetId) {
+        let items = [];
+        for (let i = 0; i < 10; i++) {
+            if (names[i]) {
+                const amt = amounts[i] ? `${Number(amounts[i]).toLocaleString('ar-IQ')} د.ع` : '';
+                items.push(`
+                    <div class="marquee-item">
+                        <span>${names[i]}</span>
+                        ${amt ? `<span class="amount">(${amt})</span>` : ''}
+                        <span class="sep">•</span>
+                    </div>
+                `);
+            }
+        }
+
+        const track = document.getElementById(targetId);
+        if (track) {
+            if (items.length === 0) {
+                track.innerHTML = '<div class="marquee-item" style="padding: 0 20px;">LUFFY - أدخل الأسماء والمبالغ <span class="sep">•</span></div>';
+            } else {
+                const html = items.join('');
+                track.innerHTML = html + html + html + html;
+            }
+        }
+    }
+
+    function saveData() {
+        const names = Array.from(document.querySelectorAll('.slot-name')).map(input => input.value.trim());
+        const amounts = Array.from(document.querySelectorAll('.slot-amount')).map(input => input.value.trim());
+
+        let data = [];
+        for(let i=0; i<10; i++) {
+            data.push({ name: names[i], amount: amounts[i] });
+        }
+
+        localStorage.setItem('luffy_data', JSON.stringify(data));
+        alert('تم حفظ البيانات بنجاح في نظام LUFFY!');
+    }
+
+    function loadOverlayData() {
+        const savedData = JSON.parse(localStorage.getItem('luffy_data')) || [];
+        const names = savedData.map(d => d.name);
+        const amounts = savedData.map(d => d.amount);
+        renderTrack(names, amounts, 'marqueeTrackOverlay');
+    }
+</script>
+
+</body>
+</html>
