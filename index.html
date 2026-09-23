@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متحكم النص المتحرك</title>
+
+<style>
+body{
+  margin:0;
+  background:transparent;
+  color:#fff;
+  font-family:Arial,sans-serif
+}
+
+.wrap{
+  max-width:900px;
+  margin:30px auto;
+  padding:20px
+}
+
+.panel{
+  background:#151d35;
+  border:1px solid #2b3658;
+  border-radius:18px;
+  padding:20px
+}
+
+.rows{
+  display:grid;
+  gap:8px;
+  margin-top:12px
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 150px;
+  gap:8px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:15px
+}
+
+label{
+  display:block;
+  margin-bottom:6px;
+  color:#b9c4e5
+}
+
+input,select{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #3a476e;
+  background:#0e1529;
+  color:#fff;
+  font-size:16px
+}
+
+button{
+  padding:12px 18px;
+  border:0;
+  border-radius:10px;
+  background:#2775ff;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:10px
+}
+
+.preview{
+  margin-top:20px;
+  height:170px;
+  border-radius:16px;
+  background:#050814;
+  overflow:hidden;
+  position:relative;
+  border:1px solid #303b60
+}
+
+.track{
+  position:absolute;
+  white-space:nowrap;
+  top:50%;
+  transform:translateY(-50%);
+  font-weight:800;
+  font-size:48px
+}
+
+.hint{
+  color:#94a0c5;
+  font-size:13px;
+  margin-top:10px
+}
+
+.hide{
+  display:none
+}
+
+@media(max-width:650px){
+  .grid{
+    grid-template-columns:1fr
+  }
+
+  .row{
+    grid-template-columns:1fr
+  }
+
+  .track{
+    font-size:34px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="panel" id="controls">
+
+<h1>🎬 متحكم النص المتحرك</h1>
+
+<div class="rows" id="rows"></div>
+
+<div class="grid">
+
+<div>
+<label>مدة ظهور كل اسم</label>
+<select id="hold">
+<option value="2">2 ثواني</option>
+<option value="3">3 ثواني</option>
+<option value="4" selected>4 ثواني</option>
+<option value="5">5 ثواني</option>
+</select>
+</div>
+
+<div>
+<label>السرعة</label>
+<select id="speed">
+<option value="18">بطيء</option>
+<option value="10" selected>متوسط</option>
+<option value="5">سريع</option>
+</select>
+</div>
+
+<div>
+<label>حجم النص</label>
+<input id="size" type="range" min="20" max="90" value="48">
+</div>
+
+<div>
+<label>الاتجاه</label>
+<select id="dir">
+<option value="left" selected>من اليمين إلى اليسار</option>
+<option value="right">من اليسار إلى اليمين</option>
+</select>
+</div>
+
+</div>
+
+<button onclick="toggleControls()">إخفاء/إظهار الإعدادات</button>
+<button onclick="start()">تشغيل</button>
+
+<div class="preview">
+<div id="track" class="track"></div>
+</div>
+
+<div class="hint">
+يظهر فقط الإدخالات التي تكتبها، ولا تظهر الخانات الفارغة.
+</div>
+
+</div>
+</div>
+
+<script>
+
+const rows=document.getElementById('rows');
+
+for(let i=0;i<10;i++){
+
+const r=document.createElement('div');
+
+r.className='row';
+
+r.innerHTML=
+'<input class="nm" placeholder="الاسم '+(i+1)+'" value="">'+
+'<input class="amt" type="number" min="0" placeholder="المبلغ" value="">';
+
+rows.appendChild(r);
+
+}
+
+let idx=0;
+let timer=null;
+
+function vals(){
+
+return [...document.querySelectorAll('.row')]
+.map(r=>({
+name:r.querySelector('.nm').value.trim(),
+num:r.querySelector('.amt').value.trim()
+}))
+.filter(a=>a.name && a.num);
+
+}
+
+function show(){
+
+const list=vals();
+
+if(!list.length){
+
+document.getElementById('track').textContent='';
+
+clearTimeout(timer);
+
+return;
+
+}
+
+const a=list[idx%list.length];
+
+const t=document.getElementById('track');
+
+t.textContent='💰 '+a.name+' '+a.num+' دينار عراقي';
+
+t.style.fontSize=document.getElementById('size').value+'px';
+
+t.style.animation='none';
+
+void t.offsetWidth;
+
+const d=document.getElementById('speed').value;
+
+const left=document.getElementById('dir').value==='left';
+
+const from=left?'110%':'-110%';
+
+const to=left?'-110%':'110%';
+
+t.style.setProperty('--from',from);
+t.style.setProperty('--to',to);
+
+t.style.left=from;
+
+t.style.animation='move '+d+'s linear 1';
+
+clearTimeout(timer);
+
+timer=setTimeout(function(){
+
+idx=(idx+1)%list.length;
+
+show();
+
+},Number(document.getElementById('hold').value)*1000);
+
+}
+
+function start(){
+
+idx=0;
+
+show();
+
+}
+
+function toggleControls(){
+
+document.getElementById('controls').classList.toggle('hide');
+
+}
+
+const st=document.createElement('style');
+
+st.textContent=
+'@keyframes move{from{left:var(--from)}to{left:var(--to)}}';
+
+document.head.appendChild(st);
+
+show();
+
+</script>
+
+</body>
+</html>
